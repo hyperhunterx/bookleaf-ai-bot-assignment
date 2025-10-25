@@ -1,0 +1,574 @@
+{
+  "name": "BL-Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aca61cab-b12e-4145-94b9-096722cc7520",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "01f5efbb-d23d-465d-b9a6-4931bec1f17f",
+      "name": "Webhook",
+      "webhookId": "aca61cab-b12e-4145-94b9-096722cc7520"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert classification AI for a publisher named BookLeaf. Your job is to analyze a user's query and return a structured JSON object. Do not add any other text outside of the JSON.\n\nThe user's query is: \"{{ $json.body.query }}\"\n\nClassify the query into one of these intents:\n- publishing_timelines (e.g., \"Is my book live yet?\")\n- royalty_reports (e.g., \"When will I get my royalty?\")\n- dashboard_access (e.g., \"I forgot my password\")\n- add_on_status\n- book_sales\n- general_question (e.g., \"How does the publishing process work?\")\n\nDetermine if the answer is likely in the author's specific database record or in the general knowledge base.\n- If it's about their specific status, date, or report, set \"response_type\" to \"database_query\".\n- If it's a general \"how-to\" or policy question (like \"how do I reset my password?\" or \"who owns the rights?\"), set \"response_type\" to \"knowledge_base_query\".\n\nProvide a confidence score from 0 to 100 on how sure you are about the classification.\n\nReturn ONLY a JSON object with this exact structure:\n{\n  \"intent\": \"...\",\n  \"confidence\": ...,\n  \"response_type\": \"database_query\" or \"knowledge_base_query\"\n}\n"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "eec51def-ab36-408b-96dd-a533442bc75b",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "zfVQmvRYWdYEsPcL",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "22d4921b-ce7a-4543-af5e-e9f092423a5f",
+              "leftValue": "={{ $json.response_type }}",
+              "rightValue": "database_query",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "a4ea2206-87b3-489c-a51d-fa2bbd220de8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "authors",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.email }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        -256
+      ],
+      "id": "c867219d-5486-47e4-8ccb-f946f499cef7",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "16gl3djXhg7Bk922",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a friendly and helpful assistant from BookLeaf.\nA customer with the email {{ $json.body.email }} asked: \"{{ $json.body.query }}\"\n\nHere is their data from our system:\n- Book Title: {{ $json.db_data.book_title }}\n- Book Live Date: {{ $json.db_data.book_live_date || \"Not yet live\" }}\n- Royalty Status: {{ $json.db_data.royalty_status || \"No status available\" }}\n- Add-on Services: {{ $json.db_data.add_on_services || \"None\" }}\n\nBased ONLY on this data, provide a clear and concise answer to their question. Be polite and professional."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        -288
+      ],
+      "id": "86554662-40fe-4306-aecf-ab6b264801d5",
+      "name": "Message a model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "zfVQmvRYWdYEsPcL",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a helpful assistant from BookLeaf publishing.\nA customer asked the following question: \"{{ $json.body.query }}\"\n\nPlease answer their question using ONLY the information provided in the Knowledge Base below. If the answer is not in the text, clearly state that you could not find the information.\n\n---\nKnowledge Base:\n{{ $json.knowledge_base }}\n---"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        368
+      ],
+      "id": "0d045228-1b4f-489c-85fb-34d532ec389c",
+      "name": "Message a model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "zfVQmvRYWdYEsPcL",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2128,
+        16
+      ],
+      "id": "cee67700-4237-461b-8f00-0ca3f85a723f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a271e7cc-bad0-47dc-b675-1dac269733ec",
+              "leftValue": "={{ $('Code').first().json.confidence }}",
+              "rightValue": 80,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2336,
+        16
+      ],
+      "id": "2c849ba9-31a1-4b69-8efe-a927f44e5a0f",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ebc0faa0-2376-46b4-9a62-b8cda44b893f",
+              "name": "final_response",
+              "value": "={{ $json.content.parts[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2560,
+        192
+      ],
+      "id": "edee85a9-1862-4da7-9f4f-5e0fedd40cec",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f35eace2-68e9-437c-a636-827c9468b884",
+              "name": "final_response",
+              "value": "I'm not quite sure how to answer that. I've escalated your query to our support team, and they will get back to you shortly.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2544,
+        -80
+      ],
+      "id": "ba942e58-cd52-4282-9f45-465d06367695",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2880,
+        48
+      ],
+      "id": "b9124429-919e-4286-9ab1-fe515ad108d8",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "tableId": "query_logs",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_email",
+              "fieldValue": "={{ $('Code').first().json.body.email }}"
+            },
+            {
+              "fieldId": "query",
+              "fieldValue": "={{ $('Code').first().json.body.query }}\n"
+            },
+            {
+              "fieldId": "intent",
+              "fieldValue": "={{ $('Code').first().json.intent }}"
+            },
+            {
+              "fieldId": "confidence",
+              "fieldValue": "={{ $('Code').first().json.confidence }}"
+            },
+            {
+              "fieldId": "response",
+              "fieldValue": "={{ $json.final_response }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3088,
+        48
+      ],
+      "id": "a18955d1-8b7a-405f-a361-8bc8c571a219",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "16gl3djXhg7Bk922",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.response }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        3296,
+        48
+      ],
+      "id": "235a67dc-f4d8-4ddb-994f-915d53560b5c",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the original input from the Webhook node\nconst originalData = $('Webhook').item.json;\n\n// Get the output from the Gemini classifier\nconst geminiOutput = $input.item.json;\n\n// Extract the text string that contains our JSON\nconst jsonString = geminiOutput.content.parts[0].text;\n\n// Parse the string into a real JSON object\nconst parsedJson = JSON.parse(jsonString);\n\n// --- FIX #1: Clean up the response_type string ---\n// This removes any hidden spaces or newlines\nparsedJson.response_type = parsedJson.response_type.trim();\n\n// --- FIX #2: Combine original data with the new data ---\n// This keeps the original email and query available for later nodes\nconst finalOutput = {\n  ...originalData,\n  ...parsedJson\n};\n\n// Return the complete, combined data\nreturn finalOutput;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "31811ad3-0dbf-4299-baf3-2e8e17b543ef",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the complete data object from our FIRST Code node.\n// This object has our original body, query, intent, etc.\nconst originalData = $('Code').first().json;\n\n// Get the database result, which is the direct input to this node.\nconst dbResult = $input.first().json;\n\n// Combine them into a new, perfect object.\n// We'll put the database result inside a 'db_data' key.\nconst finalOutput = {\n  ...originalData,\n  db_data: dbResult\n};\n\n// Return the final, combined object.\nreturn finalOutput;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        -368
+      ],
+      "id": "94ea03bd-f5f4-4db2-8599-935afe40b6b2",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the complete data object from our FIRST Code node.\n// This object has our original body, query, intent, etc.\nconst originalData = $('Code').first().json;\n\n// Get the knowledge base text from the Google Doc\nconst knowledgeBaseText = `📁 Getting Started\n│\n├── 📂 Challenge Overview\n│   ├── How do I join the 21-Day Writing Challenge?\n│   ├── What’s included in the ₹1999 publishing package?\n│   ├── Is this challenge genuine?\n│   ├── Can I use a pen name?\n│   └── What if I want to publish without joining the challenge?\n│\n├── 📂 Payments & Refunds\n│   ├── What does the ₹1999 cover?\n│   ├── Can I get a refund if I change my mind?\n│   └── Can I upgrade later with add-on services?\n\n📁 Dashboard & Submission\n│\n├── 📂 Login & Access\n│   ├── I didn’t receive my login details — what should I do?\n│   ├── I forgot my password — how can I reset it?\n│\n├── 📂 Writing & Saving Poems\n│   ├── How do I submit my poems?\n│   ├── Can I write in Hindi?\n│   ├── How do I save my progress?\n│   ├── Can I rearrange my poems later?\n│\n├── 📂 Finalizing Submission\n│   ├── What happens after I submit all poems?\n│   ├── How do I review and finish my submission?\n\n📁 Cover Design & Book Setup\n│\n├── 📂 Cover Creator Tool\n│   ├── How do I design my cover?\n│   ├── Can I upload my own cover design?\n│   ├── Why do I see only 4 templates?\n│\n├── 📂 Back Cover & Author Info\n│   ├── What should I write on the back cover?\n│   ├── Can I upload my profile photo?\n│   └── How do I edit or remove the back cover text?\n\n📁 Publishing & Distribution\n│\n├── 📂 Publishing Timeline\n│   ├── How long does it take to publish my book?\n│   ├── What’s the timeline with the ₹8899 add-on?\n│\n├── 📂 Sales & Royalties\n│   ├── Where will my book be available?\n│   ├── What’s the royalty rate?\n│   └── When will I get my royalty report?\n\n📁 Policies & Support\n│\n├── 📂 Ownership & Copyright\n│   ├── Who owns the rights to my book?\n│\n├── 📂 Technical Issues\n│   ├── My dashboard isn’t working — what should I do?\n│   └── Can I submit via email if the portal isn’t loading?\n\n\nCovered Queries\n\nHow can I join the writing challenge and publish my poems?\nHere’s how the challenge works:\nHow do I know if this is right for me?\nI want to publish a book but I'm not interested in the poetry challenge. What are my options?\nCan I use a pen name or pseudonym for the writing challenge and book publication?\nIn which languages can I submit my poems for the challenge?\nCan I publish my book in a regional language as part of the challenge?\nAre there any specific requirements regarding the theme, length, or format of the poems in the challenge?\nIs this writing challenge real? How do I know it’s not a hoax?\nIf I’m not satisfied with the challenge, can I request a refund?\nWho owns the rights to my book once it is published?\nWhat happens if I can’t complete the challenge within 21 days? Will I get extra time?\nCan I have a co-author or writing partner participate with me in the challenge?\nIs there a specific age requirement to participate in the writing challenge?\nCan I participate in the challenge again if I’ve already published a poetry book through it before?\nWhere will my book be available once it is published? (For Indian Authors)\nWill my book be available in offline stores or retail shops as part of the challenge?\nWhat is the cover and page quality of the published poetry book?\nHow many poems can be submitted daily on the portal?\nAfter submitting my poems for the challenge, how long does it take for the book to be published?\n\n📘 How to Join the Writing Challenge and Publish Your Poems\n\n✍️ How to Join the 21-Day Writing Challenge\nTo participate in BookLeaf Publishing’s flagship 21-Day Writing Challenge, follow these steps:\nRegister through our official page:\n 👉 https://www.bookleafpub.in/writing-challenge\n\n\nPay a one-time fee of ₹1999, which includes:\n\n\nParticipation in the 21-day poetry writing challenge\n\n\nComplete publishing of your poetry book (paperback + eBook)\n\n\nISBN, design, layout, and access to author support\n\n\n🔔 Important: There are no hidden charges. The fee covers the full publishing journey unless you choose to purchase any optional add-on services.\n\n📤 Poem Submission Guidelines\nMinimum requirement: Submit at least 18 poems during the 21-day challenge.\n\n\nNo upper limit: You may submit as many poems as you like within the challenge period.\n\n\nFlexible submission style: You can:\n\n\nSubmit one poem each day, or\n\n\nSubmit multiple poems on a single day, or\n\n\nSubmit all your poems at once before the deadline\n\n\nThere are no restrictions on format, theme, or length — creative freedom is fully yours.\n\n🌐 Accepted Languages\nYou may write and submit poems in:\nEnglish\n\n\nHindi\n\n\nHinglish (a natural blend of English and Hindi)\n\n\n⚠️ Note: At this time, we do not accept regional languages like Urdu, Marathi, Bengali, etc. We're working toward expanding language options in the future.\n\n🧑‍🤝‍🧑 Who Can Join?\nWriters of all ages are welcome.\n\n\nThere is no minimum or maximum age limit.\n\n\n✅ Returning authors are welcome. If you’ve participated in the challenge before, you can join again anytime — there is no limit on how many times you can participate.\n\n📆 What If I Can’t Finish in 21 Days?\nIf you're unable to submit all required poems within the initial 21-day period:\nYou will automatically receive a 7-day extension\n\n\nThis is designed to help you complete your submission comfortably\n\n\nFailing to complete the challenge does not make you eligible for a refund of the registration fee, as per our policy.\n\n\nWe recommend consistent writing throughout the challenge period for the best experience.\n\n💸 Refund Policy\nWe offer a no-questions-asked, unconditional refund within 14 days of registration.\n This applies even if you’ve already submitted some or all of your poems.\n⚠️ Refunds are not applicable after the 14-day window.\n\n📚 Publishing Timeline\nOnce your final submission is complete:\nThe publishing process typically takes 30 to 45 business days\n\n\nYou’ll be notified by email and through your author dashboard when your book is published\n\n\nIf you’ve opted for additional services, processing times may vary\n\n\n⏳ Note: During this period, your status will show as “In Review” until the book is finalized and published.\n\n📦 What’s Included in the Publishing Kit?\nEvery participant receives the following as part of their package:\n✅ Professional publication of your poetry book\n\n\n✅ Paperback + eBook versions of your book\n\n\n✅ ISBN & Barcode\n\n\n✅ Interior layout & formatting\n\n\n✅ Access to the Cover Design Tool:\n\n\nChoose from hundreds of pre-designed covers\n\n\nOr upload your own custom cover design\n\n\n✅ Promotional material to help you spread the word\n\n\n✅ Book Marketing Guide with tips to boost your book’s reach\n\n\n✅ 80% royalty on profits from book sales\n\n\n✅ Free author copy\n\n\n✅ Publishing agreement provided after challenge completion\n\n\n✅ Full copyright remains with you — BookLeaf does not claim ownership\n\n\n\n📕 Cover & Page Quality\nWe ensure that all published books meet high standards of durability and readability:\nCover: Printed on 230 GSM premium-grade material for a sturdy, professional finish\n\n\nInterior Pages: Printed on 75 GSM high-quality paper to ensure smooth texture and excellent print clarity\n\n\n📖 Books are designed to be lightweight and reader-friendly without compromising on quality.\n\n🛒 Book Distribution: Where Will Your Book Be Available?\nOnce published, the availability of your book depends on whether you’ve opted for add-on distribution services.\n🔹 Default Distribution (Included for All Participants)\nPaperback: Available on BookLeaf Publishing’s official online bookstore\n\n\neBook: Also listed on BookLeaf’s online bookstore\n\n\n📌 eBooks are exclusively sold through our own store. They are not listed on Amazon or other third-party platforms at this time.\n🔹 Extended Distribution (Requires Add-On Purchase)\nIf you purchase the Global Distribution Add-On or the Bestseller Breakthrough Package, your paperback will also be listed on:\nAmazon – across all 13 international marketplaces (including India, US, UK, Canada, Australia, etc.)\n\n\nBarnes & Noble – online store\n\n\nIngram Distribution – making your book accessible to over 30,000 bookstores and libraries worldwide\n\n\n\n\n\n📦 Author Copy: How & When You Get Your Free Book (only applicable for authors in India)\nAll participants in India are eligible for one free author copy after the book is published. Here’s how it works:\nYou’ll receive a coupon code for our online bookstore after publication.\n\n\nYou can use this coupon to order your paperback copy at zero cost.\n\n\nThe coupon is valid only for authors residing in India.\n\n\n🚚 Shipping Details:\nIn most cases, shipping is free.\n\n\nHowever, in rare scenarios (locations with limited courier access), minimal shipping charges may apply.\n\n\nAuthors outside India are not eligible for a free author copy at this time.\n\n\nThis system allows you to track your copy conveniently and order it at your preferred address and time.\n\n❌ Offline Store Availability\nYour book will not be available in physical retail bookstores.\n It will be sold online only, through:\nBookLeaf Publishing’s website (paperback + eBook)\n\n\nAmazon & Barnes & Noble (only if you opt for global distribution or Bestseller Breakthrough Package)\nIn Global Distribution or Bestseller Breakthrough Package, Ingram distribution is included, which means over 30,000+ stores and libraries will have access to your book, but the availability of your book in those stores and libraries depends on whether those stores or libraries order your book. BookLeaf Publishing cannot guarantee that.\n\n🧾 Publishing Rights\nYou retain 100% ownership of your written content.\n\n\nBookLeaf Publishing only acts as your publishing partner.\n\n\nYou are free to publish your content elsewhere in the future, if you wish.\n\n\n\n\n\nWant to publish a book but not interested in the poetry challenge. What are the options?\n\nAt the moment, we are exclusively offering our 21-Day Writing Challenge, which is focused on poetry. Our publishing services for other genres or standalone book projects are temporarily unavailable.\nIf you're open to exploring poetry, we would love to have you join the challenge! It’s a great opportunity to get your work published in the form of a professionally produced book.\nYou can learn more and register here:\n 🔗 https://www.bookleafpub.in/writing-challenge\nWe hope to resume our expanded publishing options in the future and will share updates as they become available.\n\nUsing a pen name or pseudonym for the writing challenge and book publication? \nYou can use a pen name or pseudonym when registering for the challenge and throughout the entire publishing process.\n\n\n🔐 Is the Challenge Genuine?\nYes — the challenge is 100% legitimate and widely trusted. Here are a few facts:\nOver 16,000 books have been published through this program.\n\n\nWe’ve collaborated with 14,000+ authors — from first-time writers to celebrities and influencers.\n\n\nWe recently featured on the 4th Season of Shark Tank India where our DIY publishing dashboard and writing challenge garnered praise and appreciation from all the sharks.\nA highlight: “Roots” by Rini Choudhury, written during this challenge, was launched at Rashtrapati Bhavan in the presence of the Hon’ble Vice President of India.\n🗣️ You can view author testimonials and behind-the-scenes highlights on our Instagram page:\n 👉 @bookleafpublishing\nWe’re proud to support a vibrant, inclusive community of poets and storytellers.\n\n\nLogin Credentials After Challenge Registration\n\n🟢 When Will I Receive My Login Credentials?\nAs soon as your payment is successfully processed, your login credentials are automatically emailed to you within 2 minutes.\nIf You Don’t See the Email:\nCheck your Spam or Junk folder\n\n\nIf not found, raise a support ticket here:\n 👉 https://bookleafpublishing.freshdesk.com/support/tickets/new\n\n\nOur team will verify your registration and re-send the login details promptly.\n\n🔁 What If I’m a Returning Author?\nIf you're registering for the challenge again using the same email ID, you will not receive a new login.\nYour existing dashboard remains active.\n\n\nSimply log in using the same credentials as before.\n\n\n🛠️ To activate your new challenge space, our team needs to manually enable the “Add a New Book” button on your dashboard.\nPlease share your registered email address via ticket or chat so we can activate it from our end.\nOnce enabled:\nLog in to your dashboard\n\n\nClick on “Add a New Book” (right side of the dashboard)\n\n\nA new project will be created where you can begin submitting your poems\n\n\n⚠️ If the button is visible but not clickable, it means it hasn’t been enabled yet. Kindly contact us and we’ll do it manually.\n\n📧 What If I Registered With a Different Email ID?\nIf you register with a new email, a new account is created.\nWe do not support account merging.\n\n\nEach email corresponds to one unique dashboard and login.\n\n\nIf you accidentally registered with a new email and want to use your old account, contact us before beginning your challenge.\n\n🔒 Can I Participate in Multiple Challenges at the Same Time?\nNo — each participant can have only one active/live challenge at a time.\nEven if the “Add a New Book” button is visible, it will only allow you to start a new challenge after the current one is completed or closed.\n\n  \n\nDashboard Portal – Submissions, Editing & Layout\n\n🔐 Forgot Your Login Credentials?\nIf you forget your login details, follow these steps to reset your password:\nVisit 👉 https://dashboard.bookleafpub.in\n\n\nClick on “Forgot Password”\n\n\nEnter your registered email address\n\n\nYou’ll receive a reset code via email\n\n\nUse the code to set a new password and regain access\n\n\n⚠️ If you face any issues, please raise a support ticket:\n 👉 https://bookleafpublishing.freshdesk.com/support/tickets/new\n\n📹 Dashboard Tutorial Video\nBefore submitting poems, we recommend watching this short video:\n 🎥 https://youtu.be/Z9wxMeo624k\nThis video explains:\nHow to navigate your dashboard\n\n\nHow to submit poems and use available tools\n\n\nTips to avoid common issues\n\n\n\n🖊️ Submitting Hindi Poems\nYes, you can submit Hindi poems directly in the dashboard. Since there is no built-in Hindi keyboard, you can use:\nGoogle Input Tools or any Hindi typing software to type directly\n\n\nOr write in a separate document and copy-paste into the dashboard\n\n\n✅ Please double-check formatting after pasting your text.\n\n📌 Acknowledgement, Dedication, and Preface Sections\nThese sections are preset and mandatory for all books. Here’s what you should know:\nYou cannot remove these sections\n\n\nYou cannot change their headings — they will appear in English only\n\n\nIf left empty, they will appear as blank pages in the final book\n\n\nWe recommend writing at least a minimal note in each section to avoid blank pages\n\n\n💡 These sections help standardize formatting across all published books.\n\n🧾 Poem Submission: How to Add, Save & Finalize\nTo submit poems:\nGo to Book Interior section\n\n\nClick “Add” to upload each poem individually\n\n\nAfter each entry, click “Save as Draft” to preserve your work\n\n\nYou can continue editing and saving until you're ready to finalize.\n🚫 Note: The platform does not support image uploads. Only text-based poems are allowed.\n\n📚 Arranging Poems in Order\nThe dashboard does not support drag-and-drop or rearrangement\n\n\nTo change the order of poems, you will need to delete all entries and re-upload them in the desired sequence\n\n\nWe recommend planning the order of poems in advance before submitting.\n\n📝 Finalizing Your Poems – The Preview Step\nOnce you’ve completed your submission:\nClick “Preview and Finish” — this generates a formatted preview of your book\n\n\nIt shows how your poems and details will appear in print\n\n\n🕒 Preview Loading Tip:\n Preview usually loads within a few minutes. If it takes longer than 5 minutes, refresh the page and try again.\nAfter reviewing:\nClick “Save and Continue” to proceed\n\n\nOr click “Back to Book Interior” if you need to make changes\n\n\n\n✏️ Can I Edit My Poems After Preview?\nYes — even after generating the preview, you can:\nClick “Previous Step”\n\n\nReturn to the Book Interior\n\n\nEdit your poems or introductory sections\n\n\nMake sure to re-check your preview after making edits.\n\n\n\n🎨 Cover Design: General Guidelines\nThe Cover Design section lets you create and customize the front and back cover of your book.\n📱 Mobile Browsers Not Supported\n Please use a laptop or desktop computer when working in this section for full functionality.\n\n🔳 Choosing a Front Cover Background\nTo explore all available background options:\nGo to the Cover Design section in your dashboard\n\n\nSelect “Background”\n\n\nClick on “Front”\n\n\nBrowse from a wide range of image templates\n\n\nAlternatively, you can:\nUse a solid color background\n\n\nOr upload your own custom front cover design\n\n\n📐 Custom Cover Size Requirement:\n If uploading your own front design, ensure the image is exactly 5 x 8 inches in size to avoid misalignment or printing issues.\n\n🖼️ Uploading Custom Cover with Your Own Fonts\nYou are welcome to upload a fully custom front cover with your own font styles, sizes, and layout.\nSteps to upload:\nGo to Cover Design > Background > Front\n\n\nClick “Click to upload an image”\n\n\nSelect and upload your custom 5x8\" cover\n\n\nIf you face any upload or formatting issues, feel free to contact support.\n\n🔲 Back Cover Design Options\n❌ Uploading a Custom Back Cover\nCurrently, uploading a full-image custom back cover is not supported.\n Instead, you can:\nChoose from solid color backgrounds\n\n\nEdit the text and layout elements using the dashboard tools\n\n\n\n🔧 Editing Back Cover Text\nTo customize the back cover:\nClick “Text” > select “Back”\n\n\nAdd or edit the following two sections:\n\n\nAbout the Book – Up to 60 words\n\n\nAbout the Author – Up to 60 words\n\n\n✍️ Tip: Keep both descriptions concise, clear, and compelling.\nIf the pre-filled text can’t be selected or edited:\nRefresh the page\n\n\nOr switch to a different browser\n\n\nMake sure you're using a PC or laptop\n\n\n\n🧑 Adding a Profile Picture to the Back Cover\nTo add your photo:\nIn the Back Cover area, click “Add Author Image”\n\n\nUpload your picture from your device\n\n\n❗ Once uploaded, the profile picture cannot be removed, only replaced.\n If no image is uploaded, the placeholder will not appear in the final print.\n\n✅ Finalizing Your Cover\nOnce your front and back cover designs are complete:\nClick “Preview and Finish” (right-hand side of the dashboard)\n\n\nThis generates a print-ready preview of your complete book cover\n\n\nReview the preview carefully\n\n\nThis is how your book will appear when printed\n\n\n📝 If satisfied: Click “Save and Continue”\n 🔄 If not: Click “Back to Cover Design” to make changes\n\n📦 What Happens After Cover Design?\nOnce the cover is finalized, you’ll move to the Book Distribution section, where you enter “about the author” and “about the book” information.\n⚠️ Note: Information entered here (about the author or about the book) will not auto-update your back cover. This is only for the ecommerce stores like BookLeaf’s bookstore and Amazon.\n If you'd like the same details reflected on the back cover, you must manually edit them in the Cover Design section.\n\n\nAdd-On Services & Expert Publishing Options\n\n\nWe currently offer four optional services under Expert Publishing. These are available to both Indian and international authors and can be purchased as add-ons to enhance your publishing experience. These services include:\n\n1. 🌍 Global and Extended Distribution\nWith this service, your paperback will be made available on a global scale. It includes:\nListing your book on all 13 marketplaces of Amazon — including Amazon India, US, UK, Canada, Australia, and more.\n\n\nListing your book on Barnes & Noble’s online bookstore.\n\n\nDistribution through Ingram, making your book available to 30,000+ stores and libraries worldwide.\n\n\nThis is ideal for authors who want their book to be available for purchase by readers across the globe.\n\n2. 🏆 21st Century Emily Dickinson Award\nThis is a symbolic literary award that recognizes outstanding poetic contributions from authors participating in the challenge. It is designed to serve as a mark of distinction and status for your author journey. This includes:\nEligibility and nomination management\n\n\nTrophy and certificate shipped to your address\n\n\nPromotion of awardees for enhanced visibility\n\n\nRecognition that adds status to your author profile\n\n\n\n\n3. 🔒 Global Distribution + Award + Copyright Registration\nThis bundled service includes all of the following:\nGlobal & Extended Distribution\n\n\n21st Century Emily Dickinson Award\n\n\nCopyright Registration for your book in your name\n\n\nThis is a comprehensive solution for authors looking for wide distribution, prestige recognition, and official intellectual property protection.\n\n4. 🚀 Bestseller Breakthrough Package\nThis is a premium, all-in-one publishing and promotional package designed to give your book the maximum possible boost. It includes:\nPersonal Publishing Manager\nPriority Publishing (your book will be published in half the usual time)\nGlobal Book Distribution\nSell on all 13 marketplaces of Amazon including Amazon India, US, UK, Canada and Australia\nFlipkart, Barnes&Noble, and Ingram Distribution (Access to 30,000+ bookstores and libraries)\neBook Distribution on BookLeaf Publishing Bookstore\n100% Royalty\n\nOn-demand royalty (instead of annual royalty payout)\nCopyright Registration\nUnlimited Inventory Management (your book will never go out of stock)\n5 Author Copies (only for Indian authors)\nAmazon Prime Placement\n21st Century Emily Dickinson Award\nFacebook and Amazon marketing guides prepared by experts\nThis package is ideal for authors who want to accelerate their publishing journey while maximizing visibility and market presence.\n\n💳 Add-On Service Prices & Payment Links\nFor 🇮🇳 Indian Authors\nHere are the currently active payment links for Indian participants:\nBestseller Breakthrough Package\n 💰 ₹11,999\n 🔗 https://twa.bookleafpub.in/bestseller-breakthrough-india-dash-before-completion\n\n\nGlobal Dist + Award + Copyright\n 💰 ₹8,899\n 🔗 https://rzp.io/rzp/uVwzD96\n\n\nGlobal Distribution\n 💰 ₹5,499\n 🔗 https://rzp.io/l/3lfxiA4Sg\n\n\n21st Century Emily Dickinson Award\n 💰 ₹4,499\n 🔗 https://rzp.io/l/KMajEJzA\n\n\nPost Publishing Changes (for changes after submission)\n 💰 ₹2,150\n 🔗 https://rzp.io/l/3mXfNwdA\n\n\n\nFor 🌍 International Authors\n\nBestseller Breakthrough Package\n 💰 $249\n 🔗 https://twa.bookleafpub.in/bestseller-breakthrough-international-dash-before-completion\n\n\nGlobal Dist + Award + Copyright\n 💰 $135\n 🔗 https://rzp.io/rzp/YVTtcIY\n\n\nGlobal Distribution\n 💰 $75\n 🔗 https://rzp.io/rzp/XDyMmRZ\n\n\n21st Century Emily Dickinson Award\n 💰 $115\n 🔗 https://pages.razorpay.com/pl_PXhkP2GXp6TJVc/view\n\n\nIndian Paperback Distribution\n 💰 $35\n 🔗 https://www.bookleafpub.com/powerups-new\n This service enables your book to be sold in paperback format within India, even if you're an international author.\n\n\nPost Publishing Changes\n 💰 $30\n 🔗 https://rzp.io/rzp/91QXytJT\n\n💡 Indian Paperback Distribution enables authors outside India to make their book available in India in paperback format.\n\n\n📤 What Happens After I Submit My Final Draft?\nOnce you submit your final manuscript through the dashboard, your book moves into the production queue. From this point onward, the steps differ slightly based on whether or not you’ve opted for any add-on services.\nLet’s break it down:\n\n📝 If You Have Not Opted for Any Add-On Services\n(This is referred to as the Limited Publishing route)\nYour book will be published in the following formats:\n📘 Paperback – available on the BookLeaf Publishing Store\n\n\n📱 eBook – available on the BookLeaf Publishing Store\n\n\nThe standard publishing timeline is:\n⏳ 30 to 45 business days from the date of your final submission\n\n\nDuring this period:\nYour book’s status in the dashboard will appear as “In Review”\n\n\nOur editorial and production team will work on:\n\n\nFile formatting and validation\n\n\nISBN assignment\n\n\nCover alignment and integration\n\n\nPreparing distribution assets\n\n\nOnce the publishing process is completed, the status will change to “Published”\n\n\n📩 At that point, you will receive:\nAn email with the purchase links for your book\n\n\nThe same links will also be available on your author dashboard\n\n\nYou do not need to follow up during this phase. Rest assured, our team ensures everything is progressing smoothly in the background.\n\n🚀 If You Have Opted for the Bestseller Breakthrough Package\nWith this premium add-on, the entire publication process is fast-tracked.\nThe publishing timeline in this case is:\n⏱️ 18 to 22 business days from the date of your final submission\n\n\nDuring this process:\nYour book status will still appear as “In Review” in the dashboard until publication is complete\n\n\nThe internal steps (file validation, layout, listing, etc.) are prioritized in our queue\n\n\n📩 Once your book is published, you will:\nReceive the live purchase links by email\n\n\nSee the updated status as “Published” in your dashboard\n\n\nWe appreciate your patience and assure you that every part of the process is actively being handled by our editorial and production teams.\n\n📌 Why is there a fee on the 21st Century Emily Dickinson Award?\nThe nominal fee of 4499 INR covers several important aspects of the awards process, including:\nAdministrative Costs: The fee helps us manage the logistical aspects of the awards, from organizing the nomination process to ensuring the integrity and professionalism of the selection, and then shipping and handling costs.\nCertification and Prizes: The fee supports the creation of trophy/certificates and other awards materials that recognize your achievement and can be a valuable addition to your portfolio.\nPromotion and Visibility: Part of the fee goes into promoting the awards and the nominees, ensuring your book receives the visibility it deserves among readers and industry professionals\n\n\nAuthor Queries After Publication\n\n💰 How Is the Price of My Book Determined?\nThe final price of your book is set by our market strategy team based on multiple practical factors, including:\n✅ Total number of pages\n\n\n✅ Cost of paper, printing, and GST\n\n\n✅ Cover printing (color) and lamination\n\n\n✅ Royalty margin for you as the author\n\n\nThis pricing strategy ensures:\nYour book remains competitively priced and marketable to readers\n\n\nYour royalty share is protected\n\n\nThe book reflects its production value without overpricing\n\n\n💡 We aim for a balance between value, quality, and sales potential.\n\n🔒 How Are My Poems Protected?\nWe take your intellectual property and data security seriously. Here’s how we protect your submissions:\nConfidentiality Agreements: Every team member signs a binding agreement to maintain the confidentiality of author content.\n\n\nSecure Submission Systems: All dashboards and backends are encrypted and monitored.\n\n\nStrict Access Control: Only designated publishing team members have access to manuscript content.\n\n\nYou Retain Full Ownership: We claim no rights over your poems. You are the sole copyright holder.\n\n\nSecurity Audits: Our system is reviewed periodically for vulnerabilities and compliance.\n\n\n✅ Your poems will never be shared, published elsewhere, or reused in any form without your explicit written consent.\n\n📦 Author Copies – Limited Publishing\nIf you’ve selected the Limited Publishing option (i.e., no add-on packages), here’s what you receive:\nA coupon code will be issued after publication\n\n\nThe coupon allows you to order one free author copy via the BookLeaf online bookstore\n\n\nThis is valid only for Indian authors\n\n\n❗International authors are currently not eligible for a free copy\nYou can use the coupon to order your paperback at your convenience for gifting, marketing, or personal collection. \n\n📅 When Will I Receive My Author Copy Coupon Code?\nPlease check the confirmation email (which says your book has been published) — it contains a link to submit your review. We kindly request you to complete the review, and once it’s done, you will receive the coupon code within 10 business days.\n\n\nOnce your review is submitted, your coupon code will be emailed within 10 business days\n\n\nThis ensures we close the loop and gather author feedback while also enabling access to your copy.\n\n🎁 Why Did I Receive a Coupon Code Instead of a Physical Author Copy?\nDue to the volume of titles we publish and frequent courier issues, physical author copy deliveries have been challenging to manage at scale.\nTo ensure:\nA faster and more reliable delivery experience\n\n\nA better tracking experience for you\n\n\n...we’ve shifted to issuing coupon codes redeemable at the BookLeaf Store.\nYou can order your book at your preferred time and address using this code — cutting down delays and increasing flexibility.\n📌 For authors who chose Bestseller Breakthrough Package, the coupon code will not be sent, instead we will directly ship 5 copies to their address (applicable in India).\n\n🚚 Why Am I Being Charged Delivery Fees for My Author Copy?\nThe author copy is free, but the delivery charge may still apply in the following cases:\nYour address is in a remote or non-standard courier zone\n\n\nThere is no free courier service available for your pincode\n\n\nIn these cases, a minimal shipping charge may apply — we do not profit from this fee. It is solely to cover logistics.\n\n📦 I Want to Order More Author Copies or Place a Bulk Order. What Should I Do?\nOnce your book is published and live:\nYou can place a bulk order through us directly at printing cost\n\n\nDelivery and handling charges will apply\n\n\nTo initiate:\nFill this request form:\n 🔗 https://docs.google.com/forms/d/e/1FAIpQLSeosYqrgnuZIWjbxikzijjk3-3AvRmlEFQgL821vi8sUbTXBw/viewform?usp=send_form\n\n\nAfter you fill this form, we will share a custom payment link with you\n\n\nOnce paid, books will be delivered in 30–45 business days\n\n\n📌 Note: Bulk orders are sold at cost price and do not count toward royalties or reported sales.\nFor a cost breakdown, use the calculator:\n 🔗 https://www.bookleafpub.in/printing-cost-royalty-calculator\n\n\n\n\n\n💯 What Does “100% Royalty” Mean in the Bestseller Breakthrough Package?\nWhen we say “100% royalty”, it means:\nYou receive 100% of the profit from each sale — after all mandatory costs are deducted.\nHere’s what is deducted before calculating your royalty:\nPrinting and paper costs\n\n\nPlatform commissions (e.g., Amazon's cut)\n\n\nPackaging and handling\n\n\nGST and transaction fees\n\n\nDiscount structures and return buffers\n\n\n📘 Example:\nIf your book is listed at ₹150:\nTotal deductions might be ₹80 (example)\n\n\nYour royalty will be calculated on the ₹70 profit, not the ₹150 price\n\n\n✅ This ensures you receive the entire profit, unlike standard publishing models where only a small fraction is shared.\nTo see how much you’ll earn per copy, use the calculator:\n 🔗 https://www.bookleafpub.in/printing-cost-royalty-calculator\n\n\n\n\n\n🏆 I Paid for the Emily Dickinson Award — When Will I Receive It?\nIf you’ve purchased:\nThe Emily Dickinson Award\n\n\nThe ₹8899 Global Dist + Award + Copyright bundle\n\n\nOr the Bestseller Breakthrough Package (which includes the award)\n\n\nYou will receive a trophy and certificate by courier.\n⏳ Timeline: 45 to 60 business days after your final manuscript submission\n 📩 You will receive an email notification once your award has been shipped.\nThank you for your patience — we truly value your accomplishment and are working diligently to deliver the award safely.\n\n\n\n📚 Can I Get a Draft Copy to Upload on KDP or Another Platform?\nNo, we do not provide draft files or source files for upload on Kindle Direct Publishing (KDP) or other platforms using our ISBN.\nIf you'd like to publish your book elsewhere, you are welcome to do so using:\nA different ISBN\n\n\nA version that does not use our logo or branding\n\n\n📌 Also note:\nThe eBook version of your book is exclusive to BookLeaf’s bookstore\nDual listing on Amazon via KDP using our ISBN is not allowed, to avoid publishing conflicts\n\n\n\n\n\n❗ Why Is My Book Showing “Out of Stock” or “Unavailable” on Amazon?\nThis issue may appear occasionally due to Amazon’s internal system syncing delays. This is a common occurrence.\nHere’s what you should know:\nYour book is still live and published in our system\n\n\nAmazon may temporarily show “Currently Unavailable” or “Out of Stock”\n\n\nThis typically resolves within 24–48 hours\n\n\n✅ What you should do:\nCheck the listing again after a few hours\n\n\nIf the issue persists beyond 48 hours, raise a support ticket so we can escalate it\n\n\n\n\n🟢 Why Isn’t My Book Marked as “Prime” on Amazon Yet?\nAs soon as your book is listed on Amazon.in, we submit a request for it to be made Prime eligible.\nHowever:\nThe decision and timeline is entirely controlled by Amazon\n\n\nApproval may take time due to their internal review process\n\n\nWe are actively monitoring your listing and will follow up as needed. Thank you for your patience while Amazon finalizes the Prime eligibility.\n\n\n🚚 I Have Amazon Prime — Why Am I Still Being Charged Delivery?\nEven if you're a Prime member, Amazon sometimes applies shipping fees on:\nPrint-on-demand products\n\n\nBooks fulfilled by third-party sellers\n\n\nSince BookLeaf books are POD (print-on-demand), Amazon handles the shipping fee directly.\n📌 We do not control Amazon’s delivery charges and cannot remove them, even for Prime users.\n\n\n\n📦 Post-Publishing Changes (Add-On)\nIf you’ve purchased the Post-Publishing Changes service:\nWe will begin the update process within 4–5 business days after your purchase\n\n\nYou’ll receive access to the draft of your book\n\n\nOnce you make your updates, we’ll re-initiate the publishing and listing process with the updated version of your book.\n🛠️ Our team will guide you through the revision process and ensure your book is updated with your changes.\n\n\n🧾 Publishing Certificate Request\nTo receive your official publishing certificate, please fill out this form:\n 🔗 https://docs.google.com/forms/d/e/1FAIpQLSc2q8Npy9bO3zpDuQKiupQP3ALNp_oYDjiEW7I46iSAF9Z64Q/viewform?usp=sf_link\nWe will verify your details and send you the certificate by email.\n\n\n\n\nRoyalty Queries & Sales Reports\n\n📊 How to Check Your Sales Report\nYou can view your sales report online by visiting:\n 🔗 https://ebooks.bookleafpub.com/sales-reports\nOnce on the page, you’ll find three report types:\nLive Sales – BookLeaf Store (eBooks only)\n\n\nSales Report – International Author\n\n\nSales Report – Indian Author\n\n\n🔹 A. Live eBook Sales (BookLeaf Store only)\nThis shows real-time eBook sales on BookLeaf’s online store.\n\n\nYou'll be redirected to a Google Sheet.\n\n\nSelect your book title from the dropdown to view details.\n\n\n🔹 B. Sales Report – Indian & International Authors\nIncludes both paperback and eBook sales across platforms.\n\n\nChoose the appropriate report based on your location.\n\n\n🧾 To use the report:\nEnter your book's ISBN in the white-highlighted column.\n\n\nDelete any pre-filled ISBNs before entering yours.\n\n\nSales data will populate automatically in the adjacent columns.\n\n\n📅 Update Schedule for Sales Reports:\nSales data is sourced directly from the platforms where your book is published.\n\n\nReports are updated monthly, usually after the 15th of each month.\n\n\nThe report is always current up to the month before last month.\n (For example, if today is March 10th, the latest report available would be up to January.)\nFor new authors, the first sales report is available after 45-60 business days since the book goes live.\n\n\n\n\n\n💸 When and How Will I Receive My Royalty Payment?\nRoyalties are paid once your earnings cross a minimum threshold and are processed in a phased manner.\nMinimum Thresholds:\nFor Indian authors: ₹2000\n\n\nFor International authors: $100\n\n\n\nOnce Your Royalty Crosses the Threshold:\nPlease inform us via the helpdesk to initiate your royalty transfer.\n\n\nAfter we verify your eligibility, we’ll send you a Razorpay payout link to your registered email address.\n\n\nCheck both your Inbox and Spam/Junk folders for the email.\n\nHow to Claim Your Royalty:\nClick on the payout link in the email.\n\n\nEnter your UPI ID or bank account details as prompted.\n\n\nYour royalty will be transferred to you accordingly.\n\n\n💡 Note: The payment can take anywhere from 1 minute to 24 hours to reflect in your account, depending on your bank or wallet provider.\nIf you face any issues during this process, please reach out to our support team — we’re always here to assist.\n\nFor authors enrolled in the Bestseller Breakthrough Package, royalties are paid on-demand—meaning you can request a royalty payout anytime after your book has been live for at least 30 business days.\nThis 30-day window allows for:\nCompletion of initial reporting cycles from platforms like Amazon, Flipkart, etc.\nValidation of sales data\nProcessing of any returns or adjustments\n\n📘 eBook & 📗 Paperback Royalty Structure\nWe are committed to full transparency when it comes to your royalty earnings.\nYour detailed sales report (with royalty breakdowns) is available at:\n 🔗 https://ebooks.bookleafpub.com/sales-reports\n\n📘 eBook Royalty:\nYou receive 80% royalty on the net sale price of each eBook sold through our store (unless your package includes 100% royalty).\n\n\nThis ensures that you benefit from most of the profits while keeping the book attractively priced for readers.\n\n\n\n📗 Paperback Royalty:\nPaperback royalty is calculated differently and depends on the following:\nPlatform discounts\n\n\nPrinting cost\n\n\nGST (Goods & Services Tax)\n\n\nPackaging and handling charges\n\n\nDistribution and return expenses\n\n\n💰 Royalty Formula:\nSelling Price – Printing & Market Access Charges = Your Royalty Base\nThen:\nIf you're on the regular publishing model: you get 80% of this amount\n\n\nIf you're on the Bestseller Breakthrough Package: you get 100% of this amount\n\n\nTo calculate your royalty, you can use our Royalty Calculator here:\n 🔗 https://www.bookleafpub.in/printing-cost-royalty-calculator\n\n\n\n❓ What Does “80% Royalty” Mean?\nWhen we say “80% royalty,” it refers to 80% of the profit earned, not 80% of the book's listed price.\nThe book’s listed price includes:\nPrinting cost\n\n\nPlatform fees (e.g., Amazon commission)\n\n\nGST and other taxes\n\n\nHandling and packaging\n\n\nDistribution & return costs\n\n\nPlatform discounts (e.g., Amazon often takes 25–50% off MRP)\n\n\nExample:\nIf your book is listed at ₹150 on Amazon:\n₹40 may go toward printing\n\n\n₹45 may be deducted by Amazon (platform discount + fees + taxes)\n\n\nRemaining profit: ₹65\n\n\nYou’ll receive 80% of ₹65 = ₹52\n\n\nYou can use our royalty calculator for an accurate estimate:\n 🔗 https://www.bookleafpub.in/printing-cost-royalty-calculator\n\n💯 Understanding “100% Royalty” (For Bestseller Breakthrough Authors Only)\nIf you’ve purchased the Bestseller Breakthrough Package, you're eligible for 100% royalty.\nThis means:\nYou receive the entire profit (after deductions) from each sale.\n\n\nYou still don’t receive 100% of the listed price — platform costs and printing still apply.\n\n\nExample:\nIf your book is listed at ₹150:\nPrinting + taxes + fees = ₹60\n\n\nNet profit = ₹90\n\n\nYou’ll receive ₹90 as your royalty\n\n\nThis model ensures the entire profit margin goes to you.\nAgain, use the Royalty calculator to view detailed estimations.\n\n\n\n\n💰 If a Bestseller Breakthrough Author Requests Royalty Payout\nIf you’ve opted for the Bestseller Breakthrough Package, you are entitled to request your royalty any time — there is no minimum payout threshold.\nSimply inform us through the helpdesk whenever you wish to receive your royalty payout. We will verify and process your request accordingly.\n\n\n\n\n\nBestseller Breakthrough Package – Support & Deliverables\n\nWhen Will a Publishing Consultant Contact Me?\nIf you’ve chosen the Bestseller Breakthrough Package, a dedicated Publishing Consultant will get in touch with you within 5–7 business days from the date of your final submission. They will communicate with you via email.\nThis consultant will:\nAct as your primary point of contact\n\n\nGuide you through every stage of the publishing process\n\n\nAddress any questions, preferences, or concerns you have along the way\n\n\nIf it's been more than 7 business days and you haven’t heard from them, you can always raise a support ticket for a status check.\n\n🕒 What If My Assigned Publishing Consultant Isn’t Responding?\nIf your assigned consultant has not been responding to your messages or emails:\nWe sincerely apologize for the inconvenience caused.\n\n\nPlease rest assured that we’ll personally inform your consultant to get back to you as soon as possible.\n\n\nIf you do not receive a response within 48 hours, feel free to reach out again — our support team will escalate the issue immediately.\n\n\nWe understand how important timely communication is during your publishing journey, and we’re committed to ensuring you feel fully supported every step of the way.\n\n🌍 Where Will My Book Be Published in Bestseller Breakthrough Package?\nUnder the Bestseller Breakthrough Package, your book is published globally and made available across multiple premium platforms, including:\nAll 13 Amazon marketplaces, including:\n\n\nAmazon India\n\n\nAmazon US\n\n\nAmazon UK\n\n\nAmazon Canada\n\n\nAmazon Australia\n\n\nFlipkart (India)\n\n\nBarnes & Noble\n\n\nIngram Distribution Network – enabling access to 30,000+ bookstores and libraries worldwide\n\n\nBookLeaf Publishing Store (for the eBook version)\n\n\nYour book receives maximum visibility and distribution reach, making it accessible to readers across geographies.\n\n🛡️ How Is the Copyright Registered Under This Package?\nCopyright registration is included in the package and handled entirely by our team. Here's the process:\n✅ Step 1: Initiation (After Your Paperback Goes Live)\nOnce your paperback version is published:\nYou’ll receive a copyright form\n\n\nYou’ll be asked to submit:\n\n\nA copy of your PAN Card and/or Aadhaar Card\n\n\nBasic personal details\n\n\nIf you're using a pen name, a notarized or e-stamped affidavit may be required. Don’t worry — our team will guide you through this step if it applies.\n\n✅ Step 2: Submission & Filing\nAfter receiving your details:\nWe file your copyright application on your behalf via the official Indian Copyright Office portal\n\n\nFor international authors:\n\n\nWe use BookLeaf’s Indian address\n\n\nAnd our phone number, allowing your application to be filed from within India\n\n\nThis ensures all authors, regardless of their location, are covered under India’s copyright law.\n\n✅ Step 3: Government Review & Certification\nOnce filed:\nThe application enters a government review process\n\n\nFinal copyright certificate is typically issued within 6–9 months\n\n\n⏳ However, your work is legally protected from the moment your application is filed — not just when the certificate is received.\nIf you’re confused at any step, or if you're unsure about documentation or affidavits, feel free to reach out. We’ll guide you through it.\n\n📦 How Many Author Copies Are Included?\nIndian Authors\nReceive 5 complimentary printed author copies if they’ve chosen the Bestseller Breakthrough Package. Authors who choose “Limited Publishing”, will be provided with a coupon to purchase one author copy from our BookLeaf Bookstore.\nFor authors with Bestseller Breakthrough Package, the author copies are dispatched 15–20 business days after your book goes live on all platforms\n\n\nShipped directly to your registered address\n\n\nInternational Authors\nComplimentary author copies are not provided at this time to International authors\n\n\nHowever, International authors can order bulk copies at printing cost\n\n\nOur team will help you with ordering and delivery options based on your location\n\n\n\n🏆 The 21st Century Emily Dickinson Award\nThis prestigious award is included in the Bestseller Breakthrough Package to honor your contribution to contemporary poetry.\n🎯 Eligibility\nAll authors who opt for the Bestseller Breakthrough Package are automatically eligible\n\n\nNo separate application is needed for authors who opt for the Bestseller Breakthrough Package\n\n\n📅 Dispatch Timeline\nThe award is dispatched in batches\n\n\nTypical delivery timeframe: 45–60 business days after your book is live on all platforms\n\n\nThis timeline ensures secure packaging and coordinated shipping across multiple authors.\n\n📦 Tracking & Support\nIf you’re nearing the 45–60 business day mark and haven’t received your award:\nYou can raise a support ticket\n\n\nOur team will help you with a status update or provide tracking information\n\n\nThis award is a symbolic recognition of your creative excellence, and we’re thrilled to share it with you!\n\n🤔 Why Doesn’t the Award Have My Name On It?\nWe understand the excitement of receiving your award — and we appreciate your creativity.\nPlease note:\nThe award is not personalized with author names\n\n\nThis is due to the batch processing system in place\n\n\nIt helps us maintain timely deliveries for hundreds of authors\n\n\nThat said, the award is still a symbol of your achievement and your recognition as a published poet\n\n\n\n📌 What We Don’t Offer (Important Limitations)\n\nTo ensure clarity and avoid misunderstandings, here are some services and features BookLeaf Publishing does not currently offer:\n\nPhone or Video Support\nWe do not offer phone calls, WhatsApp calls, or video meetings for support. All communication and assistance are provided via WhatsApp, email or our helpdesk.\n\nEditing, Proofreading, or Design Services (Standalone)\nWe currently do not provide editing, proofreading, or custom cover design as separate services. The tools and templates available on your dashboard are designed for DIY usage.\nNote: Some premium packages (e.g., Bestseller Breakthrough) may include additional consulting, but standalone editing/design services are not offered.\n\nPublishing Outside Poetry\nAt this time, we only publish poetry books through our 21-Day Writing Challenge. Submissions of fiction, short stories, or novels are temporarily not accepted.\n Book Type / Genre\n\nAnthologies or group submissions are not accepted.\nFile Ownership / KDP Restrictions\n\nBookLeaf does not provide source files, print-ready PDFs, or open/editable formats.\nISBNs issued by BookLeaf cannot be reused elsewhere (e.g., on KDP).\n\nSales-Related Clarity\n·   \nBookLeaf cannot influence or guarantee sales, reviews, or star ratings on Amazon.\nAdditional Information\n\nThe AI agent must avoid confirming any awards, editor picks, or nominations unless explicitly listed in the KB.\nNo timeline or guarantee should be given for any award beyond what’s stated in the knowledge base.\n\nShipping & Free Copies\n\nFree international shipping is not provided, even for author copies, unless specifically mentioned.\nBot must decline special packaging or autographed copy requests.\n\nUncommon requests like tax invoices or customised publishing certificates should be escalated to a human agent.\n\n\nCustom Publishing via Kindle Direct Publishing (KDP)\nAuthors are not permitted to use BookLeaf-provided files or ISBNs to upload their books to KDP or any other platform.\nIf you wish to publish independently, you’ll need to:\nUse a different ISBN\nCreate a new version of your book without BookLeaf branding and BookLeaf logo\n\nGuaranteed Prime Badge on Amazon\nWe submit every eligible title for Prime consideration after it goes live, but Amazon independently decides whether to display the Prime badge. We cannot guarantee or expedite this.\n\nDelivery Exemptions for Amazon Prime Members\nDelivery charges on Amazon are handled entirely by Amazon, and may still apply to print-on-demand titles—even for Prime members.\n\nThis Knowledge Base is the only source of valid information\n\nAlways provide information strictly from this knowledge base. Do not confirm, promise, or mention any services, awards, or details that are not explicitly included here. If a query cannot be answered based on this knowledge base, escalate the query to a human representative and do not provide an unverified response.\n\nWriting Challenge Availability\n\nRegistrations are always open. At any given time, BookLeaf is accepting new participants.\nWriters from India can sign up here: https://www.bookleafpub.in/writing-challenge\nWriters outside India can sign up here: https://www.bookleafpub.com/writing-challenge-us\n\n\n`;\n\n// Combine the original data with the knowledge base\nconst finalOutput = {\n  ...originalData,\n  knowledge_base: knowledgeBaseText\n};\n\n// Return the final, combined object.\nreturn finalOutput;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        96
+      ],
+      "id": "b5b11fc9-dc7f-4514-8a04-85681058e088",
+      "name": "Code2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Message a model2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c3ca4e6d-4766-4d94-8afb-d18167de0ca1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "29931b2af2c49df321a372f0a3f58a3992d9e92ba69128872d2fe4ffdabad41e"
+  },
+  "id": "0ULG7cAY5QrrQpx9",
+  "tags": []
+}
