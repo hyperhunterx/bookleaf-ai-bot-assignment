@@ -58,7 +58,7 @@ curl --location 'http://122.152.18.115:49169/webhook/aca61cab-b12e-4145-94b9-096
 *   `workflow.json`: The complete, importable n8n workflow.
 *   `data/authors.csv`: The sample data used in the Supabase `authors` table.
 *   `data/query_logs_sample.csv`: A sample of the data being captured in the `query_logs` table.
-*   `design/IdentityUnificationFlowchart.md`: The flowchart and explanation for the intermediate task.
+*   `IntermediateTask`: The flowchart and explanation for the intermediate task.
 
 ---
 
