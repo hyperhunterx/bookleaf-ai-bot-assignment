@@ -1,0 +1,16 @@
+id,created_at,email,book_title,final_submission_date,book_live_date,royalty_status,ISBN,add_on_services
+1,2025-10-25 05:27:35.933385+00,sara.j@example.com,The Whispering Willow,2025-09-10,2025-10-20,Paid,978-3-16-148410-0,Bestseller Package
+2,2025-10-25 05:27:35.933385+00,mike.chen@example.com,Cyber Dreams,2025-08-28,,Pending,978-1-4028-9462-6,
+3,2025-10-25 05:27:35.933385+00,emma.watson@example.com,Beyond the Horizon,2025-09-15,2025-11-05,Paid,978-0-596-52068-7,Premium Cover Design
+4,2025-10-25 05:27:35.933385+00,arjun.mehta@example.com,The Lost Empire,2025-07-25,2025-08-30,Paid,978-0-395-19395-8,Bestseller Package
+5,2025-10-25 05:27:35.933385+00,lily.brown@example.com,A Symphony of Shadows,2025-08-10,2025-09-22,Pending,978-0-7432-7356-0,
+6,2025-10-25 05:27:35.933385+00,david.kim@example.com,Quantum Hearts,2025-06-30,2025-08-15,Paid,978-1-250-30724-6,Marketing Boost
+7,2025-10-25 05:27:35.933385+00,ananya.singh@example.com,The Silver Thread,2025-10-01,,Pending,978-0-316-76948-1,
+8,2025-10-25 05:27:35.933385+00,liam.jones@example.com,When Stars Collide,2025-07-18,2025-09-01,Paid,978-1-9848-3321-0,Bestseller Package
+9,2025-10-25 05:27:35.933385+00,priya.patel@example.com,Forgotten Letters,2025-09-22,2025-10-30,Paid,978-0-141-03405-9,Premium Cover Design
+10,2025-10-25 05:27:35.933385+00,ethan.ross@example.com,The Clockmaker’s Curse,2025-08-05,,Pending,978-0-06-245771-4,
+11,2025-10-25 05:27:35.933385+00,isabella.garcia@example.com,Shadows of Venice,2025-09-12,2025-10-18,Paid,978-1-4088-5567-2,Marketing Boost
+12,2025-10-25 05:27:35.933385+00,rajiv.nair@example.com,The Fractured Crown,2025-09-25,2025-11-12,Paid,978-0-525-43304-3,Bestseller Package
+13,2025-10-25 05:27:35.933385+00,claire.davis@example.com,Garden of Ashes,2025-08-22,,Pending,978-0-06-296367-3,
+14,2025-10-25 05:27:35.933385+00,mohit.sharma@example.com,Beneath Crimson Skies,2025-07-30,2025-09-10,Paid,978-1-250-01107-5,Marketing Boost
+15,2025-10-25 05:27:35.933385+00,sophia.lee@example.com,The Glass Tides,2025-09-05,,Pending,978-1-9848-3192-6,

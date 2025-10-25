@@ -1,0 +1,95 @@
+id,created_at,user_email,query,intent,confidence,response
+9,2025-10-25 10:04:46.055714+00,sara.j@example.com,"Is my book live yet?
+",publishing_timelines,98,"Subject: Re: Is my book live yet?
+
+Hi Sara,
+
+Thanks for reaching out!
+
+Your book, ""The Whispering Willow,"" is not live yet. Its planned live date is October 20, 2025.
+
+We'll be sure to notify you closer to the launch date.
+
+If you have any other questions, please don't hesitate to ask!
+
+Best regards,
+
+The BookLeaf Team"
+13,2025-10-25 10:13:44.314301+00,sara.j@example.com,"Is my book live yet?
+",publishing_timelines,98,"Dear Sara,
+
+Thank you for reaching out!
+
+Regarding your book, ""The Whispering Willow,"" it is not live yet. Its confirmed live date is October 20, 2025.
+
+We're looking forward to its launch!
+
+Best regards,
+
+The BookLeaf Team"
+14,2025-10-25 10:17:40.803049+00,another.author@example.com,"How do I reset my password?
+",dashboard_access,98,"I could not find the information to answer your question, as the question itself was not provided, and the knowledge base is empty."
+15,2025-10-25 10:29:13.783129+00,another.author@example.com,"How do I reset my password?
+",dashboard_access,98,"To reset your password, please follow these steps:
+
+1.  Visit 👉 https://dashboard.bookleafpub.in
+2.  Click on “Forgot Password”
+3.  Enter your registered email address
+4.  You’ll receive a reset code via email
+5.  Use the code to set a new password and regain access
+
+If you face any issues, please raise a support ticket at 👉 https://bookleafpublishing.freshdesk.com/support/tickets/new."
+16,2025-10-25 10:30:08.707598+00,sara.j@example.com,"I want to write a sci-fi novel, not poetry. Can you publish it?
+",general_question,98,"Thank you for reaching out to BookLeaf Publishing.
+
+At this time, we are exclusively offering our 21-Day Writing Challenge, which is focused on poetry. Submissions of fiction, short stories, or novels are temporarily not accepted. Our publishing services for other genres or standalone book projects are temporarily unavailable.
+
+We hope to resume our expanded publishing options in the future and will share updates as they become available."
+17,2025-10-25 10:34:46.483303+00,mike.chen@example.com,"What's the status of my add-on services?
+",add_on_status,98,"Hello Mike,
+
+Thanks for reaching out!
+
+Based on the information we have in our system for your book ""Cyber Dreams"", it shows that you currently have no add-on services associated with your project.
+
+If you have any further questions or would like to discuss available add-on services, please don't hesitate to ask!
+
+Best regards,
+
+The BookLeaf Team"
+18,2025-10-25 10:35:21.732325+00,priya.patel@example.com,"Who owns the rights to my book after it is published?
+",general_question,100,"You retain 100% ownership of your written content. BookLeaf Publishing only acts as your publishing partner and claims no rights over your poems. You are the sole copyright holder and are free to publish your content elsewhere in the future, if you wish."
+19,2025-10-25 10:35:50.893228+00,arjun.mehta@example.com,"How do royalties work?
+",general_question,98,"Here's how royalties work at BookLeaf publishing, based on the information available:
+
+**Royalty Structure:**
+*   **eBook Royalty:** You receive 80% royalty on the net sale price of each eBook sold through the BookLeaf store, unless your package includes 100% royalty.
+*   **Paperback Royalty:** This is calculated after deducting several costs from the selling price, including platform discounts, printing cost, GST, packaging and handling charges, and distribution and return expenses.
+
+**Royalty Formula:**
+The royalty you receive is based on the profit from each sale, not the book's listed price.
+1.  **Selling Price – Printing & Market Access Charges = Your Royalty Base**
+2.  **Then:**
+    *   If you're on the regular publishing model: you get 80% of this Royalty Base.
+    *   If you're on the Bestseller Breakthrough Package: you get 100% of this Royalty Base.
+
+**Understanding ""80% Royalty"":**
+This means you receive 80% of the *profit earned* from each sale, after all mandatory costs are deducted. These deductions include printing cost, platform fees (e.g., Amazon's commission), GST and other taxes, handling and packaging, distribution & return costs, and platform discounts.
+*   **Example:** If a book is listed at ₹150, and ₹40 goes to printing, and ₹45 is deducted by Amazon (for platform discount + fees + taxes), the remaining profit is ₹65. Your royalty would be 80% of ₹65, which is ₹52.
+
+**Understanding ""100% Royalty"" (For Bestseller Breakthrough Authors Only):**
+If you have the Bestseller Breakthrough Package, you receive 100% of the profit from each sale, after all mandatory costs are deducted. You still do not receive 100% of the listed price, as printing and platform costs still apply.
+*   **Example:** If a book is listed at ₹150, and printing + taxes + fees total ₹60, the net profit is ₹90. You would receive ₹90 as your royalty.
+
+**Royalty Calculator:**
+You can use the Royalty Calculator available at `https://www.bookleafpub.in/printing-cost-royalty-calculator` for an accurate estimate of your earnings per copy.
+
+**When and How You Receive Royalty Payments:**
+*   **Minimum Thresholds:**
+    *   For Indian authors: ₹2000
+    *   For International authors: $100
+*   **Claiming Royalty:** Once your earnings cross the minimum threshold, you need to inform BookLeaf via the helpdesk to initiate the transfer. After verification, you will receive a Razorpay payout link to your registered email address (check your inbox and spam/junk folders). You can then enter your UPI ID or bank account details to receive the payment.
+*   **Payment Timeframe:** The payment can take anywhere from 1 minute to 24 hours to reflect in your account.
+*   **Bestseller Breakthrough Package Authors:** Royalties are paid on-demand, meaning you can request a payout anytime after your book has been live for at least 30 business days. There is no minimum payout threshold for these authors."
+20,2025-10-25 10:36:28.735556+00,emma.watson@example.com,"Can you guarantee my book will get a 5-star review on Amazon?
+",general_question,98,"BookLeaf Publishing cannot influence or guarantee sales, reviews, or star ratings on Amazon."
